@@ -92,6 +92,19 @@ class {'::mongodb::server': }->
 class {'::mongodb::client': }
 ```
 
+Having a local copy of MongoDB repository (that is managed by your private modules)
+you can still enjoy the charms of `mongodb::params` that manage packages.
+To disable managing of repository, but still enable managing packages:
+
+```puppet
+class {'::mongodb::globals':
+  manage_package_repo => false,
+  manage_package      => true,
+}->
+class {'::mongodb::server': }->
+class {'::mongodb::client': }
+```
+
 ## Usage
 
 Most of the interaction for the server is done via `mongodb::server`. For
@@ -168,6 +181,14 @@ your OS distro.
 This setting can be used to override the default status check command for
 your MongoDB service. If not specified, the module will use whatever service
 name is the default for your OS distro.
+
+##### `mongod_service_manage`
+This setting can be used to override the default management of the mongod service.
+By default the module will manage the mongod process.
+
+##### `mongos_service_manage`
+This setting can be used to override the default management of the mongos service.
+By default the module will manage the mongos process.
 
 #####`user`
 This setting can be used to override the default MongoDB user and owner of the
@@ -422,6 +443,19 @@ Default: <>
 #####`ssl_ca`
 Default: <>
 
+#####`service_manage`
+Whether or not the MongoDB service resource should be part of the catalog.
+Default: true
+
+#####`storage_engine`
+Only needed for MongoDB 3.x versions, where it's possible to select the
+'wiredTiger' engine in addition to the default 'mmapv1' engine. If not set, the
+config is left out and mongo will default to 'mmapv1'.
+You should not set this for MongoDB versions < 3.x
+
+#####`restart`
+Specifies whether the service should be restarted on config changes. Default: 'true'
+
 ####Class: mongodb::mongos
 class. This class should only be used if you want to implement sharding within
 your mongodb deployment.
@@ -441,6 +475,10 @@ Path to the config template if the default doesn't match one needs.
 
 #####`configdb`
 Array of the config servers IP addresses the mongos should connect to.
+
+#####`service_manage`
+Whether or not the MongoDB sharding service resource should be part of the catalog.
+Default: true
 
 #####`service_name`
 This setting can be used to override the default Mongos service name. If not
@@ -468,6 +506,9 @@ This setting can be used to specify if puppet should install the package or not
 #####`package_name`
 This setting can be used to specify the name of the package that should be installed.
 If not specified, the module will use whatever service name is the default for your OS distro.
+
+#####`restart`
+Specifies whether the service should be restarted on config changes. Default: 'true'
 
 ### Definitions
 
@@ -509,7 +550,7 @@ The maximum amount of two second tries to wait MongoDB startup. Default: 10
 
 ```puppet
 mongodb_user { testuser:
-  username      => 'testuser',
+  name          => 'testuser',
   ensure        => present,
   password_hash => mongodb_password('testuser', 'p@ssw0rd'),
   database      => testdb,
@@ -590,6 +631,10 @@ This module has been tested on:
 For a full list of tested operating systems please have a look at the [.nodeset.xml](https://github.com/puppetlabs/puppetlabs-mongodb/blob/master/.nodeset.yml) definition.
 
 This module should support `service_ensure` separate from the `ensure` value on `Class[mongodb::server]` but it does not yet.
+
+### Apt module support
+
+While this module supports both 1.x and 2.x versions of the puppetlabs-apt module, it does not support puppetlabs-apt 2.0.0 or 2.0.1.
 
 ## Development
 
